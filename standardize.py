@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os, re, json, time, argparse, sys
+import os, re, json, time, argparse
 import numpy as np
 import pandas as pd
-from collections import defaultdict
 
 import faiss
 from sentence_transformers import SentenceTransformer
@@ -218,7 +217,7 @@ def parse_args():
     parser.add_argument("--out", required=True,
                         help="Output CSV path")
     parser.add_argument("--synonyms", default=None,
-                        help="Optional synonyms CSV (alias,canonical)")
+                        help="Optional synonyms CSV (alias,canonical). If omitted, will auto-detect 'synonyms.csv' if present.")
     parser.add_argument("--model", default=DEFAULT_MODEL,
                         help=f"Sentence-Transformer model (default: {DEFAULT_MODEL})")
     return parser.parse_args()
@@ -228,6 +227,14 @@ def parse_args():
 # -------------------
 def main():
     args = parse_args()
+
+    # Auto-detect a synonyms file if user didn't pass --synonyms
+    if not args.synonyms:
+        for cand in ["synonyms.csv", "data/synonyms.csv"]:
+            if os.path.exists(cand):
+                args.synonyms = cand
+                print(f"Auto-using synonyms file: {cand}")
+                break
 
     t0 = time.time()
     # Load index or build
